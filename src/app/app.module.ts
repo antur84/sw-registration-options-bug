@@ -3,23 +3,33 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { ServiceWorkerModule } from '@angular/service-worker';
+import {
+  ServiceWorkerModule,
+  SwRegistrationOptions,
+} from '@angular/service-worker';
+import { delay, of, tap } from 'rxjs';
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    ServiceWorkerModule.register('ngsw-worker.js', {
-      enabled: !isDevMode(),
-      // Register the ServiceWorker as soon as the application is stable
-      // or after 30 seconds (whichever comes first).
-      registrationStrategy: 'registerWhenStable:30000'
-    })
+    ServiceWorkerModule.register('ngsw-worker.js'),
   ],
-  providers: [],
-  bootstrap: [AppComponent]
+  providers: [
+    {
+      provide: SwRegistrationOptions,
+      useFactory: serviceWorkerInitFactory,
+    },
+  ],
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}
+
+export function serviceWorkerInitFactory(): SwRegistrationOptions {
+  return {
+    enabled: true,
+    registrationStrategy: () =>
+      of('lets go').pipe(delay(5000), tap(console.log)),
+  };
+}
